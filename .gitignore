@@ -1,0 +1,7 @@
+build/
+build-deb/
+prefix/
+packaging/stage/
+dist/
+*.o
+*.deb

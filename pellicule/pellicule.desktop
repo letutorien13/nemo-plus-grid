@@ -1,0 +1,19 @@
+[Desktop Entry]
+Name=Pellicule
+Name[fr]=Pellicule
+GenericName=Photo and video viewer
+GenericName[fr]=Visionneuse photos et vidéos
+Comment=Browse images and play videos with system codecs (GStreamer) or VLC
+Comment[fr]=Parcourir les photos et lire les vidéos avec les codecs du système (GStreamer) ou VLC
+Keywords=filmstrip;pellicule;photo;image;video;audio;viewer;vlc;gstreamer;
+Exec=pellicule %F
+TryExec=pellicule
+Icon=applications-multimedia
+Terminal=false
+Type=Application
+StartupNotify=true
+StartupWMClass=pellicule
+DBusActivatable=false
+# Graphisme + Son et vidéo dans le menu Cinnamon
+Categories=GTK;Graphics;Viewer;AudioVideo;Audio;Video;
+MimeType=image/jpeg;image/png;image/gif;image/webp;image/bmp;image/tiff;image/svg+xml;video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;audio/mpeg;audio/flac;audio/ogg;inode/directory;

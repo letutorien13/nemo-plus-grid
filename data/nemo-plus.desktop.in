@@ -1,0 +1,35 @@
+[Desktop Entry]
+Name=nemo+
+GenericName=File Manager (isolated copy)
+GenericName[fr]=Gestionnaire de fichiers (copie isolée)
+Comment=Browse files with Filmstrip / Pellicule view — separate from system Nemo
+Comment[fr]=Parcourir les fichiers en mode Pellicule — copie séparée du Nemo système
+Keywords=folder;manager;explore;disk;filesystem;filmstrip;pellicule;nemo-plus;
+Exec=nemo-plus %U
+TryExec=nemo-plus
+Icon=system-file-manager
+Terminal=false
+Type=Application
+StartupNotify=true
+StartupWMClass=nemo-plus
+DBusActivatable=false
+# Pas Categories=Core : ne pas se proposer comme explorateur par défaut du bureau
+Categories=GTK;Utility;Filesystem;
+# On peut ouvrir un dossier « avec » nemo+, sans remplacer Nemo
+MimeType=inode/directory;
+Actions=open-home;open-computer;open-trash;
+
+[Desktop Action open-home]
+Name=Home
+Name[fr]=Dossier personnel
+Exec=nemo-plus %U
+
+[Desktop Action open-computer]
+Name=Computer
+Name[fr]=Poste de travail
+Exec=nemo-plus computer:///
+
+[Desktop Action open-trash]
+Name=Trash
+Name[fr]=Corbeille
+Exec=nemo-plus trash:///

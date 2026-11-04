@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Lance la copie de test (boutons de barre doublés).
+# Ne remplace pas Nemo, ni le nemo+ déjà installé dans ~/.local/nemo-plus.
+set -u
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+PREFIX="${NEMO_PLUS_PREFIX:-$ROOT/prefix}"
+BIN="$PREFIX/bin/nemo-plus-test"
+
+if [ ! -x "$BIN" ]; then
+  echo "La version de test n'est pas compilée ($BIN)." >&2
+  echo "Dans ce dossier : ./build-nemo-plus.sh" >&2
+  exit 1
+fi
+
+if command -v pgrep >/dev/null 2>&1 && pgrep -u "${USER:-$(id -un)}" -x nemo-plus-test >/dev/null 2>&1; then
+  has_win=0
+  if command -v wmctrl >/dev/null 2>&1; then
+    if wmctrl -lx 2>/dev/null | grep -q 'nemo-plus-test\.Nemo-plus-test'; then
+      has_win=1
+    fi
+  fi
+  if [ "$has_win" = 0 ]; then
+    pkill -u "${USER:-$(id -un)}" -x nemo-plus-test >/dev/null 2>&1 || true
+    sleep 0.2
+  fi
+fi
+
+NEMO_PLUS_HOME="${NEMO_PLUS_HOME:-$HOME/.nemo-plus-test}"
+mkdir -p \
+  "$NEMO_PLUS_HOME/cache" \
+  "$NEMO_PLUS_HOME/data" \
+  "$NEMO_PLUS_HOME/state" \
+  "$PREFIX/share/dconf/profile" \
+  "$HOME/.config/dconf"
+
+# Pas de tiret dans le nom de base : dconf en fait un chemin D-Bus.
+printf '%s\n' 'user-db:nemoplustest' > "$PREFIX/share/dconf/profile/nemo-plus-test"
+
+# Traductions : le binaire cherche les .mo dans son préfixe, pas dans /usr.
+if [ -d /usr/share/locale ]; then
+  find /usr/share/locale -path '*/LC_MESSAGES/nemo.mo' 2>/dev/null | while read -r mo; do
+    rel="${mo#/usr/share/locale/}"
+    dest="$PREFIX/share/locale/$rel"
+    mkdir -p "$(dirname "$dest")"
+    ln -sfn "$mo" "$dest"
+  done
+fi
+
+export XDG_CACHE_HOME="$NEMO_PLUS_HOME/cache"
+export XDG_DATA_HOME="$NEMO_PLUS_HOME/data"
+export XDG_STATE_HOME="$NEMO_PLUS_HOME/state"
+export DCONF_PROFILE=nemo-plus-test
+export XDG_DATA_DIRS="$PREFIX/share:/usr/local/share:/usr/share"
+export GSETTINGS_SCHEMA_DIR="$PREFIX/share/glib-2.0/schemas${GSETTINGS_SCHEMA_DIR:+:$GSETTINGS_SCHEMA_DIR}"
+export LD_LIBRARY_PATH="$PREFIX/lib/x86_64-linux-gnu:$PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export PATH="$PREFIX/bin:/usr/bin:/bin:${PATH:-}"
+export NEMO_PLUS_CLAIM_FILEMANAGER=0
+
+if [ -d "$PREFIX/share/glib-2.0/schemas" ]; then
+  glib-compile-schemas "$PREFIX/share/glib-2.0/schemas" 2>/dev/null || true
+fi
+
+# Première ouverture : fenêtre en grand, barre latérale lisible.
+# Les lancements suivants gardent ce que la copie de test a enregistré.
+if [ ! -f "$NEMO_PLUS_HOME/.window-seeded" ]; then
+  gsettings set org.nemo.window-state maximized true || true
+  gsettings set org.nemo.window-state sidebar-width 400 || true
+  touch "$NEMO_PLUS_HOME/.window-seeded"
+fi
+
+exec "$BIN" "$@"
