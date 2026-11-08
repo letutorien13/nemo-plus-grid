@@ -5,7 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-VER="${NEMO_PLUS_VERSION:-6.6.3+grid1}"
+VER="${NEMO_PLUS_VERSION:-6.6.3+grid2}"
 ARCH="$(dpkg --print-architecture)"
 BUILD="$ROOT/build-deb"
 STAGE="$ROOT/packaging/stage"
@@ -53,6 +53,19 @@ if [ ! -x "$PKGDIR$PREFIX/bin/nemo-plus-test" ]; then
   echo "Binaire introuvable : $PKGDIR$PREFIX/bin/nemo-plus-test" >&2
   exit 1
 fi
+
+# Greffons du Nemo Mint (archives, images, partage, Python).
+# Fichiers réels, pas des liens : ils doivent partir avec le paquet.
+EXT_SRC="/usr/lib/x86_64-linux-gnu/nemo/extensions-3.0"
+EXT_DST="$PKGDIR$PREFIX/lib/x86_64-linux-gnu/nemo/extensions-3.0"
+mkdir -p "$EXT_DST"
+for name in libnemo-fileroller.so libnemo-image-converter.so libnemo-python.so libnemo-share.so; do
+  if [ ! -f "$EXT_SRC/$name" ]; then
+    echo "Greffon manquant : $EXT_SRC/$name" >&2
+    exit 1
+  fi
+  install -m 0644 "$EXT_SRC/$name" "$EXT_DST/$name"
+done
 
 mkdir -p \
   "$PKGDIR/usr/bin" \
@@ -174,6 +187,8 @@ fi
 cat > "$PKGDIR/usr/share/doc/nemo-plus-grid/copyright" << 'EOF'
 Nemo+grid+ is based on Nemo from Linux Mint.
 Nemo is GPL-2.0-or-later. The source is in this package's Git repository.
+The bundled Nemo extensions (fileroller, image-converter, python, share)
+are the GPL binaries shipped by Linux Mint for Nemo 6.6.
 EOF
 cp "$ROOT/COPYING" "$PKGDIR/usr/share/doc/nemo-plus-grid/COPYING"
 
@@ -183,9 +198,13 @@ if command -v dpkg-shlibdeps >/dev/null 2>&1; then
     -l"$PKGDIR$PREFIX/lib/x86_64-linux-gnu" \
     -O "$PKGDIR$PREFIX/bin/nemo-plus-test" 2>/dev/null | sed 's/^shlibs:Depends=//' || true)
   if [ -n "${SHLIB:-}" ]; then
-    DEPS="$SHLIB, gvfs, gsettings-desktop-schemas, cinnamon-desktop-data, shared-mime-info"
+    DEPS="$SHLIB, gvfs, gsettings-desktop-schemas, cinnamon-desktop-data, shared-mime-info, file-roller, nemo-image-converter, nemo-python, nemo-share"
   fi
 fi
+case "$DEPS" in
+  *file-roller*) ;;
+  *) DEPS="$DEPS, file-roller, nemo-image-converter, nemo-python, nemo-share" ;;
+esac
 
 SIZE_KB=$(du -sk "$PKGDIR" | awk '{print $1}')
 
@@ -202,7 +221,8 @@ Recommends: cinnamon-l10n
 Homepage: https://github.com/letutorien13/nemo-plus-grid
 Description: Nemo+grid+ — mode pellicule, boutons agrandis
  Copie isolée du gestionnaire de fichiers Nemo, avec le mode pellicule
- (Ctrl+4) et des boutons de barre d'outils agrandis.
+ (Ctrl+4), des boutons de barre d'outils agrandis, et les greffons
+ archives, images, partage et Python.
  Installée dans /opt/nemo-plus-grid. Elle ne remplace pas /usr/bin/nemo,
  ne lance pas le bureau, et ne devient pas le gestionnaire par défaut.
 EOF

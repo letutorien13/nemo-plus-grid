@@ -5,7 +5,7 @@ Copie de Nemo 6.6.3 (Linux Mint) avec le mode pellicule et des boutons de barre 
 Le paquet à tester est sur les [publications](https://github.com/letutorien13/nemo-plus-grid/releases).
 
 ```bash
-sudo apt install ./nemo-plus-grid_6.6.3+grid1_amd64.deb
+sudo apt install ./nemo-plus-grid_6.6.3+grid2_amd64.deb
 nemo-plus-grid
 ```
 

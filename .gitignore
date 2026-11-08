@@ -5,3 +5,5 @@ packaging/stage/
 dist/
 *.o
 *.deb
+libnemo-extension/*.so
+libnemo-extension/extensions-3.0/
